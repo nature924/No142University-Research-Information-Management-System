@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.TongzhiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.xueyuanbumen_id as xueyuanbumenId
+        ,a.tongzhi_uuid_number as tongzhiUuidNumber
+        ,a.tongzhi_name as tongzhiName
+        ,a.tongzhi_types as tongzhiTypes
+        ,a.tongzhi_content as tongzhiContent
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.TongzhiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,xueyuanbumen.xueyuanbumen_uuid_number as xueyuanbumenUuidNumber
+        ,xueyuanbumen.xueyuanbumen_name as xueyuanbumenName
+        ,xueyuanbumen.xueyuanbumen_address as xueyuanbumenAddress
+        ,xueyuanbumen.xueyuanbumen_content as xueyuanbumenContent
+
+        FROM tongzhi  a
+        left JOIN xueyuanbumen xueyuanbumen ON a.xueyuanbumen_id = xueyuanbumen.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test="params.xueyuanbumenId != null and params.xueyuanbumenId != ''">
+                and (
+                    a.xueyuanbumen_id = #{params.xueyuanbumenId}
+                )
+            </if>
+            <if test=" params.tongzhiUuidNumber != '' and params.tongzhiUuidNumber != null and params.tongzhiUuidNumber != 'null' ">
+                and a.tongzhi_uuid_number like CONCAT('%',#{params.tongzhiUuidNumber},'%')
+            </if>
+            <if test=" params.tongzhiName != '' and params.tongzhiName != null and params.tongzhiName != 'null' ">
+                and a.tongzhi_name like CONCAT('%',#{params.tongzhiName},'%')
+            </if>
+            <if test="params.tongzhiTypes != null and params.tongzhiTypes != ''">
+                and a.tongzhi_types = #{params.tongzhiTypes}
+            </if>
+            <if test=" params.tongzhiContent != '' and params.tongzhiContent != null and params.tongzhiContent != 'null' ">
+                and a.tongzhi_content like CONCAT('%',#{params.tongzhiContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+                <!-- 判断学院部门的id不为空 -->
+            <if test=" params.xueyuanbumenIdNotNull != '' and params.xueyuanbumenIdNotNull != null and params.xueyuanbumenIdNotNull != 'null' ">
+                and a.xueyuanbumen_id IS NOT NULL
+            </if>
+            <if test=" params.xueyuanbumenUuidNumber != '' and params.xueyuanbumenUuidNumber != null and params.xueyuanbumenUuidNumber != 'null' ">
+                and xueyuanbumen.xueyuanbumen_uuid_number like CONCAT('%',#{params.xueyuanbumenUuidNumber},'%')
+            </if>
+            <if test=" params.xueyuanbumenName != '' and params.xueyuanbumenName != null and params.xueyuanbumenName != 'null' ">
+                and xueyuanbumen.xueyuanbumen_name like CONCAT('%',#{params.xueyuanbumenName},'%')
+            </if>
+            <if test=" params.xueyuanbumenAddress != '' and params.xueyuanbumenAddress != null and params.xueyuanbumenAddress != 'null' ">
+                and xueyuanbumen.xueyuanbumen_address like CONCAT('%',#{params.xueyuanbumenAddress},'%')
+            </if>
+            <if test=" params.xueyuanbumenContent != '' and params.xueyuanbumenContent != null and params.xueyuanbumenContent != 'null' ">
+                and xueyuanbumen.xueyuanbumen_content like CONCAT('%',#{params.xueyuanbumenContent},'%')
+            </if>
+        </where>
+        order by a.${params.sort} ${params.order}
+    </select>
+
+</mapper>
